@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,11 +33,14 @@ import com.google.android.gms.fitness.data.DataPoint;
 import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataType;
 import com.google.android.gms.fitness.data.Field;
+import com.google.android.gms.fitness.data.Value;
 import com.google.android.gms.fitness.request.DataReadRequest;
 import com.google.android.gms.fitness.result.DataReadResult;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -48,6 +52,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static GoogleApiClient mClient = null;
 
     String text_data = null;
+    Button fitApi;
+    static Value totalcount;
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
@@ -67,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
+        fitApi = (Button) findViewById(R.id.fit);
         prefs = getSharedPreferences("application_settings", 0);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -81,6 +88,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
             }
         });
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -98,6 +106,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             name.setText(prefs.getString("name",""));
         }
 
+        buildFitnessClient();
+    }
+    public void buildFitnessClient(View v){
         buildFitnessClient();
     }
 
@@ -152,7 +163,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
     private class ReadingDataTask extends AsyncTask<Void, Void, Void> {
         protected Void doInBackground(Void... params) {
-            DataReadRequest readRequest = queryFitnessData();
+            DataReadRequest readRequest = null;
+            try {
+                readRequest = queryFitnessData();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
 
             DataReadResult dataReadResult =
                     Fitness.HistoryApi.readData(mClient, readRequest).await(1, TimeUnit.MINUTES);
@@ -169,7 +185,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected void onPostExecute(Void aVoid) {
             TextView mtextdata = (TextView) findViewById(R.id.section_label);
-            mtextdata.setText(text_data);
+            mtextdata.setText(String.valueOf(totalcount));
+            //fitApi.setVisibility(View.GONE);
 
         }
     }
@@ -197,12 +214,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DateFormat dateFormat = DateFormat.getTimeInstance();
 
         for (DataPoint dp : dataSet.getDataPoints()) {
+            SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
             Log.i("hell", "Data point:");
             Log.i("hell", "\tType: " + dp.getDataType().getName());
-            Log.i("hell", "\tStart: " + dateFormat.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
-            Log.i("hell", "\tEnd: " + dateFormat.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
+            Log.i("hell", "\tStart: " + sdf.format(dp.getStartTime(TimeUnit.MILLISECONDS)));
+            Log.i("hell", "\tEnd: " + sdf.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
             for(Field field : dp.getDataType().getFields()) {
-                Log.i("hell", "\tField: " + field.getName() + " Value: " + dp.getValue(field));
+                Log.i("hell", "\tField: " + field.getName() + " Value: " + dp.getValue(field)+dp.describeContents());
+//                totalcount = totalcount+ dp.getValue(field);
             }
         }
     }
@@ -243,16 +262,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    public static DataReadRequest queryFitnessData() {
+    public static DataReadRequest queryFitnessData() throws ParseException {
 
         Calendar cal = Calendar.getInstance();
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH)+1;
+        int day =cal.get(Calendar.DAY_OF_MONTH);
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        int second = cal.get(Calendar.SECOND);
+        String startDateString = String.valueOf(year)+"-"+"0"+String.valueOf(month)+"-"+String.valueOf(day)+" "+"0"+"00"+":"+"00"+":"+"00";
         Date now = new Date();
+        //Log.i("hell",startDate);
+//        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
         cal.setTime(now);
-        long endTime = cal.getTimeInMillis();
-        cal.add(Calendar.YEAR, -1);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date startDate = df.parse(startDateString);
+        long startTime = startDate.getTime();
+//        Log.i("hell", String.valueOf(startTime));
+//        Log.i("hell",df.format(String.valueOf(startDate)));
 
+        long endTime = cal.getTimeInMillis();
         java.text.DateFormat dateFormat = DateFormat.getDateInstance();
-        long startTime = cal.getTimeInMillis();
+        cal.add(Calendar.DAY_OF_MONTH,-1);
+//        long startTime = cal.getTimeInMillis();
+
 
         Log.i("hell", "Range Start: " + dateFormat.format(startTime));
         Log.i("hell", "Range End: " + dateFormat.format(endTime));
