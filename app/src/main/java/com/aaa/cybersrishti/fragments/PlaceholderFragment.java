@@ -37,9 +37,16 @@ public class PlaceholderFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_tabbed, container, false);
-        TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-        textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+        View rootView=null;
+        if(getArguments().getInt(ARG_SECTION_NUMBER)==1) {
+            rootView = inflater.inflate(R.layout.home_tabbed, container, false);
+            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+        }
+        else{
+            rootView = inflater.inflate(R.layout.feed_tabbed,container,false);
+        }
         return rootView;
+
     }
 }

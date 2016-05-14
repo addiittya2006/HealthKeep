@@ -26,7 +26,7 @@ public class AddfoodActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         switch (id) {
-            case R.id.action_favorite:
+            case R.id.action_go:
                 finish();
 
             default:
@@ -34,5 +34,4 @@ public class AddfoodActivity extends AppCompatActivity {
 
         }
     }
-
 }

@@ -46,14 +46,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-
-
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public static GoogleApiClient mClient = null;
-
+    private static Float total=null;
     String text_data = null;
     Button fitApi;
     static Value totalcount;
+
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
@@ -73,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        fitApi = (Button) findViewById(R.id.fit);
+        //fitApi = (Button) findViewById(R.id.fit);
         prefs = getSharedPreferences("application_settings", 0);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
@@ -106,9 +105,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             name.setText(prefs.getString("name",""));
         }
 
-        buildFitnessClient();
-    }
-    public void buildFitnessClient(View v){
         buildFitnessClient();
     }
 
@@ -185,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected void onPostExecute(Void aVoid) {
             TextView mtextdata = (TextView) findViewById(R.id.section_label);
-            mtextdata.setText(String.valueOf(totalcount));
+            mtextdata.setText(String.valueOf(total));
             //fitApi.setVisibility(View.GONE);
 
         }
@@ -193,6 +189,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public static void printData(DataReadResult dataReadResult) {
         if (dataReadResult.getBuckets().size() > 0) {
+            //Log.i("hell",dataReadResult.getBuckets());
             Log.i("hell", "Number of returned buckets of DataSets is: "
                     + dataReadResult.getBuckets().size());
             for (Bucket bucket : dataReadResult.getBuckets()) {
@@ -212,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private static void dumpDataSet(DataSet dataSet) {
         DateFormat dateFormat = DateFormat.getTimeInstance();
-
+        total= Float.valueOf(0);
         for (DataPoint dp : dataSet.getDataPoints()) {
             SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
             Log.i("hell", "Data point:");
@@ -221,7 +218,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.i("hell", "\tEnd: " + sdf.format(dp.getEndTime(TimeUnit.MILLISECONDS)));
             for(Field field : dp.getDataType().getFields()) {
                 Log.i("hell", "\tField: " + field.getName() + " Value: " + dp.getValue(field)+dp.describeContents());
-//                totalcount = totalcount+ dp.getValue(field);
+                Log.i("hell", String.valueOf(dp.getValue(field)));
+                total += Float.parseFloat(String.valueOf(dp.getValue(field)));
             }
         }
     }
@@ -284,7 +282,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         long endTime = cal.getTimeInMillis();
         java.text.DateFormat dateFormat = DateFormat.getDateInstance();
-        cal.add(Calendar.DAY_OF_MONTH,-1);
+        cal.add(Calendar.DAY_OF_MONTH, -1);
 //        long startTime = cal.getTimeInMillis();
 
 
@@ -292,9 +290,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Log.i("hell", "Range End: " + dateFormat.format(endTime));
 
         DataReadRequest readRequest = new DataReadRequest.Builder()
-                .aggregate(DataType.TYPE_CALORIES_EXPENDED, DataType.AGGREGATE_CALORIES_EXPENDED)
-                .bucketByActivityType(1, TimeUnit
-                        .SECONDS)
+                .read(DataType.AGGREGATE_CALORIES_EXPENDED)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build();
         // [END build_read_data_request]
