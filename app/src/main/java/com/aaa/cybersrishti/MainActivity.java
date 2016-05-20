@@ -2,8 +2,10 @@ package com.aaa.cybersrishti;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -19,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,11 +51,13 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     public static GoogleApiClient mClient = null;
+    ProgressBar calProgress;
     private static Float total=null;
     String text_data = null;
     Button fitApi;
     static Value totalcount;
-
+    int pStatus = 0;
+    private Handler handler = new Handler();
 
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
@@ -68,13 +73,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
         mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
         //fitApi = (Button) findViewById(R.id.fit);
-        prefs = getSharedPreferences("application_settings", 0);
 
+        prefs = getSharedPreferences("application_settings", 0);
+        
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
@@ -104,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Picasso.with(this).load(prefs.getString("pic", "")).into(profile);
             name.setText(prefs.getString("name",""));
         }
+
 
         buildFitnessClient();
     }
@@ -182,6 +188,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onPostExecute(Void aVoid) {
             TextView mtextdata = (TextView) findViewById(R.id.section_label);
             mtextdata.setText(String.valueOf(total));
+            calProgress = (ProgressBar)findViewById(R.id.circularProgressbar);
+            calProgress.setMax(total.intValue());
+//             calProgress.setProgressDrawable(draw);
+            new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    // TODO Auto-generated method stub
+                    while (pStatus < 100) {
+                        pStatus += 1;
+
+                        handler.post(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                // TODO Auto-generated method stub
+                                calProgress.setProgress(pStatus);
+                            }
+                        });
+                        try {
+                            // Sleep for 200 milliseconds.
+                            // Just to display the progress slowly
+                            Thread.sleep(200);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+             // Maximum Progress
             //fitApi.setVisibility(View.GONE);
 
         }
