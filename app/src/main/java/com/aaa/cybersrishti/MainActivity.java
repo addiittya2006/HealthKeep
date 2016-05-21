@@ -2,7 +2,6 @@ package com.aaa.cybersrishti;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aaa.cybersrishti.adapters.SectionsPagerAdapter;
+import com.aaa.cybersrishti.helpers.DatabaseHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -49,7 +49,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     public static GoogleApiClient mClient = null;
     ProgressBar calProgress;
     private static Float total=null;
@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     static Value totalcount;
     int pStatus = 0;
     private Handler handler = new Handler();
-
+    Boolean limit=false;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
 
@@ -190,14 +190,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mtextdata.setText(String.valueOf(total));
             calProgress = (ProgressBar)findViewById(R.id.circularProgressbar);
             calProgress.setMax(total.intValue());
+            final DatabaseHelper db = new DatabaseHelper(MainActivity.this);
+
+
 //             calProgress.setProgressDrawable(draw);
             new Thread(new Runnable() {
 
                 @Override
                 public void run() {
                     // TODO Auto-generated method stub
-                    while (pStatus < 100) {
+                    Log.i("hell", String.valueOf(db.getTotalCalorieCount()));
+                    while (pStatus < db.getTotalCalorieCount()) {
                         pStatus += 1;
+                        if(pStatus+10> total.intValue()){
+                            limit=true;
+                            break;
+
+                        }
 
                         handler.post(new Runnable() {
 
@@ -210,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         try {
                             // Sleep for 200 milliseconds.
                             // Just to display the progress slowly
-                            Thread.sleep(200);
+                            Thread.sleep(5);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -219,7 +228,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }).start();
              // Maximum Progress
             //fitApi.setVisibility(View.GONE);
-
+            if(limit==true)
+            Toast.makeText(MainActivity.this,"You have reached the fucking deadline",Toast.LENGTH_LONG).show();
         }
     }
 

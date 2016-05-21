@@ -4,13 +4,21 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.aaa.cybersrishti.R;
+import com.aaa.cybersrishti.adapters.FoodFeedAdapter;
+import com.aaa.cybersrishti.helpers.DatabaseHelper;
+import com.aaa.cybersrishti.model.FoodItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by addiittya on 10/05/16.
@@ -20,9 +28,13 @@ public class PlaceholderFragment extends Fragment {
      * The fragment argument representing the section number for this
      * fragment.
      */
-    ProgressBar calProgress;
-    int pStatus = 0;
-    private Handler handler = new Handler();
+    int total=0;
+
+    private ArrayList<FoodItem> mArrFood;
+    private ListView lstView;
+    private FoodFeedAdapter fa;
+    private SwipeRefreshLayout swipeRefreshLayout;
+
     private static final String ARG_SECTION_NUMBER = "section_number";
 
     public PlaceholderFragment() {
@@ -54,6 +66,36 @@ public class PlaceholderFragment extends Fragment {
 
         else{
             rootView = inflater.inflate(R.layout.feed_tabbed,container,false);
+
+            final DatabaseHelper db = new DatabaseHelper(getContext());
+
+            mArrFood = new ArrayList<>();
+            fa = new FoodFeedAdapter(mArrFood, rootView.getContext());
+
+            lstView = (ListView) rootView.findViewById(R.id.listView);
+            lstView.setAdapter(fa);
+
+            swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
+            swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    mArrFood.clear();
+
+                    swipeRefreshLayout.setRefreshing(true);
+                    List<FoodItem> fooditems = db.getAllFoodItems();
+
+                    for (FoodItem fitem : fooditems) {
+                        mArrFood.add(fitem);
+//                        total=total+ Integer.parseInt(fitem.get_cal_count());
+//                    String log = "Id: " + fitem.get_id() + " ,Name: " + fitem.get_name() + " ,Calories: " + fitem.get_cal_count() + ", Added: " + fitem.get_date();
+//                    Log.d("Name: ", log);
+                    }
+
+                    fa.notifyDataSetChanged();
+
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            });
         }
         return rootView;
 
