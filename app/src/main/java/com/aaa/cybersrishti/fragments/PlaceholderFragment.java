@@ -1,14 +1,12 @@
 package com.aaa.cybersrishti.fragments;
 
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -82,13 +80,17 @@ public class PlaceholderFragment extends Fragment {
                     mArrFood.clear();
 
                     swipeRefreshLayout.setRefreshing(true);
-                    List<FoodItem> fooditems = db.getAllFoodItems();
+                    List<FoodItem> fooditems = db.getTodayFoodItems();
+                    List<FoodItem> fooditems1 = db.getAllFoodItems();
+
+                    for(FoodItem fitem: fooditems1){
+                        String log = "Id: " + fitem.get_id() + " ,Name: " + fitem.get_name() + " ,Calories: " + fitem.get_cal_count() + ", Added: " + fitem.get_date();
+                        Log.d("Hell", log);
+                    }
 
                     for (FoodItem fitem : fooditems) {
                         mArrFood.add(fitem);
 //                        total=total+ Integer.parseInt(fitem.get_cal_count());
-//                    String log = "Id: " + fitem.get_id() + " ,Name: " + fitem.get_name() + " ,Calories: " + fitem.get_cal_count() + ", Added: " + fitem.get_date();
-//                    Log.d("Name: ", log);
                     }
 
                     fa.notifyDataSetChanged();
