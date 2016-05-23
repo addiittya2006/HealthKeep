@@ -4,5 +4,6 @@ Using the Fit API to retreive user Results for the Calories Burnt during day-to-
 Suggesting the Amount of Calories to be Consumed to stay Healthy.<br>
 
 ###TODO
-* Not implemented still the Latest Date Results.
-* DB is not returning Correct Results.(Some problem with the Date format)
+✅ Not implemented still the Latest Date Results.<br>
+✅ DB is not returning Correct Results.(Some problem with the Date format)<br>
+UI is still Ugly and under Improvement

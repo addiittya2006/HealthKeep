@@ -5,14 +5,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.aaa.cybersrishti.model.FoodItem;
 
-import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -96,8 +95,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 fooditem.set_cal_count(cursor.getString(2));
                 try {
                     fooditem.set_date(new SimpleDateFormat("yyyy-MM-dd").parse(cursor.getString(3)));
-                    Log.d("From DB", cursor.getString(3));
-                    Log.d("query", "SELECT * FROM " + TABLE_FOOD + " WHERE " + KEY_DATESTAMP + " = " + new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -110,7 +107,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public List<FoodItem> getTodayFoodItems() {
         List<FoodItem> fooditemList = new ArrayList<FoodItem>();
-        String selectQuery = "SELECT * FROM " + TABLE_FOOD + " WHERE " + KEY_DATESTAMP + " = " + new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String selectQuery = "SELECT * FROM " + TABLE_FOOD + " WHERE " + KEY_DATESTAMP + " = \"" + new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + "\"";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -123,8 +120,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 fooditem.set_cal_count(cursor.getString(2));
                 try {
                     fooditem.set_date(new SimpleDateFormat("yyyy-MM-dd").parse(cursor.getString(3)));
-                    Log.d("From DB", cursor.getString(3));
-                    Log.d("query", "SELECT * FROM " + TABLE_FOOD + " WHERE " + KEY_DATESTAMP + " = " + new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }

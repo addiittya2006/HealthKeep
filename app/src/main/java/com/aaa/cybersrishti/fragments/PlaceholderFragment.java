@@ -81,12 +81,6 @@ public class PlaceholderFragment extends Fragment {
 
                     swipeRefreshLayout.setRefreshing(true);
                     List<FoodItem> fooditems = db.getTodayFoodItems();
-                    List<FoodItem> fooditems1 = db.getAllFoodItems();
-
-                    for(FoodItem fitem: fooditems1){
-                        String log = "Id: " + fitem.get_id() + " ,Name: " + fitem.get_name() + " ,Calories: " + fitem.get_cal_count() + ", Added: " + fitem.get_date();
-                        Log.d("Hell", log);
-                    }
 
                     for (FoodItem fitem : fooditems) {
                         mArrFood.add(fitem);
