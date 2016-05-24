@@ -7,3 +7,4 @@ Suggesting the Amount of Calories to be Consumed to stay Healthy.<br>
 ✅ Not implemented still the Latest Date Results.<br>
 ✅ DB is not returning Correct Results.(Some problem with the Date format)<br>
 UI is still Ugly and under Improvement
+Stuck in a Loop for the AddSpecActvity would not finish (Response is still zero.)

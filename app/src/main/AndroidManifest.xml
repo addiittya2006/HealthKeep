@@ -35,6 +35,9 @@
             android:name=".AddfoodActivity"
             android:label="@string/title_activity_addfood">
         </activity>
+        <activity android:name=".AddSpecsActivity"
+                  android:label="Add Weight Height">
+        </activity>
     </application>
 
 </manifest>

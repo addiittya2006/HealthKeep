@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {
         super.onResume();
-        buildFitnessClient();
+//        buildFitnessClient();
     }
 
     @Override
@@ -198,7 +198,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onPostExecute(Void aVoid) {
             TextView mtextdata = (TextView) findViewById(R.id.section_label);
             if(total == 0){
-
+                Intent i = new Intent(MainActivity.this, AddSpecsActivity.class);
+                startActivity(i);
+                Log.d("Hell", "this is nicd");
             } else{
                 assert mtextdata != null;
                 mtextdata.setText(String.valueOf(total));

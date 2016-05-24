@@ -8,7 +8,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 
-import com.aaa.cybersrishti.helpers.DatabaseHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -19,6 +18,7 @@ import com.google.android.gms.fitness.data.DataSet;
 import com.google.android.gms.fitness.data.DataSource;
 import com.google.android.gms.fitness.data.DataType;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 public class AddSpecsActivity extends AppCompatActivity {
 
     private static GoogleApiClient mClient = null;
-    DatabaseHelper db = new DatabaseHelper(this);
     EditText etheight;
     EditText etweight;
 
@@ -41,8 +40,11 @@ public class AddSpecsActivity extends AppCompatActivity {
 
     }
 
-    private void buildFitnessClient() {
+    private void buildFitnessClient(String height, String weight) {
 
+        final ArrayList<String> arr = new ArrayList<>();
+        arr.add(0, height);
+        arr.add(1, weight);
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
                 .addScope(new Scope(Scopes.FITNESS_BODY_READ_WRITE))
@@ -51,7 +53,7 @@ public class AddSpecsActivity extends AppCompatActivity {
                             @Override
                             public void onConnected(Bundle bundle) {
                                 Log.i("hell", "Connected!!!");
-                                new AddSpecsActivity.AddDataTask().execute();
+                                new AddSpecsActivity.AddDataTask().execute(arr);
 
                             }
 
@@ -77,12 +79,10 @@ public class AddSpecsActivity extends AppCompatActivity {
 
     }
 
-    private class AddDataTask extends AsyncTask<Void, Void, Void> {
-        protected Void doInBackground(Void... params) {
-//            DataReadRequest readRequest = null;
-            try {
-//                readRequest = queryFitnessData();
+    private class AddDataTask extends AsyncTask<ArrayList<String>, Void, Void> {
 
+        protected Void doInBackground(ArrayList<String>... params) {
+          try {
                 Calendar c = Calendar.getInstance();
                 Date d = new Date();
                 c.setTime(d);
@@ -100,11 +100,11 @@ public class AddSpecsActivity extends AppCompatActivity {
 
                 DataPoint dataPointh = dataSeth.createDataPoint()
                         .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS);
-                dataPointh.setFloatValues();
+                dataPointh.setFloatValues(Float.valueOf(params[0].get(0)));
                 dataSeth.add(dataPointh);
 
                 DataSource dataSourceWeight = new DataSource.Builder()
-                        .setDataType(DataType.TYPE_HEIGHT)
+                        .setDataType(DataType.TYPE_WEIGHT)
                         .setType(DataSource.TYPE_RAW)
                         .setAppPackageName(getApplicationContext())
                         .build();
@@ -113,8 +113,23 @@ public class AddSpecsActivity extends AppCompatActivity {
 
                 DataPoint dataPointw = dataSetw.createDataPoint()
                         .setTimeInterval(startTime, endTime, TimeUnit.MILLISECONDS);
-                dataPointw.setFloatValues();
+                dataPointw.setFloatValues(Float.valueOf(params[0].get(1)));
                 dataSetw.add(dataPointw);
+
+                com.google.android.gms.common.api.Status insertStatus1 =
+                        Fitness.HistoryApi.insertData(mClient, dataSeth)
+                                .await(1, TimeUnit.MINUTES);
+
+                com.google.android.gms.common.api.Status insertStatus2 =
+                        Fitness.HistoryApi.insertData(mClient, dataSetw)
+                                .await(1, TimeUnit.MINUTES);
+
+                if (!insertStatus1.isSuccess() || !insertStatus2.isSuccess()) {
+                    Log.i("Hell", "There was a problem inserting the dataset.");
+                    return null;
+                } else {
+                    Log.i("Sucess", "Done.");
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -126,7 +141,7 @@ public class AddSpecsActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-
+            finish();
         }
     }
 
@@ -147,9 +162,7 @@ public class AddSpecsActivity extends AppCompatActivity {
             case R.id.action_go:
 
 //                db.addFoodItem(new FoodItem(etheight.getText().toString(), etweight.getText().toString()));
-                buildFitnessClient();
-
-                finish();
+                buildFitnessClient(etheight.getText().toString(), etweight.getText().toString());
 
             default:
                 return super.onOptionsItemSelected(item);
