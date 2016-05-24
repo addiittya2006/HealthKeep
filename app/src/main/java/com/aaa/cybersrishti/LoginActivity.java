@@ -98,9 +98,10 @@ public class LoginActivity extends ActionBarActivity implements GoogleApiClient.
             editor.putString("ageRangeMin", String.valueOf(ageRangeMin));
             editor.putString("ageRangeMax", String.valueOf(ageRangeMax));
             editor.putString("gender", gender);
+            editor.putBoolean("logged_in",true);
             editor.commit();
-            Toast.makeText(this,name + pic + email,Toast.LENGTH_LONG).show();
-            Toast.makeText(this,name + pic + email,Toast.LENGTH_LONG).show();
+//            Toast.makeText(this,name + pic + email,Toast.LENGTH_LONG).show();
+//            Toast.makeText(this,name + pic + email,Toast.LENGTH_LONG).show();
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);
             startActivity(intent);
 

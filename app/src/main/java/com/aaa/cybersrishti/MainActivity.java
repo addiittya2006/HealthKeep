@@ -1,7 +1,10 @@
 package com.aaa.cybersrishti;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,11 +18,13 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ProgressBar calProgress;
     private static Float total=null;
     String text_data = null;
-    Button fitApi;
     static Value totalcount;
     int pStatus = 0;
     private Handler handler = new Handler();
@@ -83,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(mViewPager);
 
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,9 +114,55 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Picasso.with(this).load(prefs.getString("pic", "")).into(profile);
             name.setText(prefs.getString("name",""));
         }
+//
+//        ConnectivityManager conMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
+        if (activeNetwork != null && activeNetwork.isConnected()) {
+            buildFitnessClient();
+            // notify user you are online
+
+        }
+        else {
+            calProgress = (ProgressBar)findViewById(R.id.circularProgressbar);
+            calProgress.setMax(prefs.getInt("total",0));
+            new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    // TODO Auto-generated method stub
+                    final DatabaseHelper db = new DatabaseHelper(MainActivity.this);
+                    Log.i("hell", String.valueOf(db.getTodayCalorieCount()));
+                    while (pStatus < prefs.getInt("consumed",0)) {
+                        pStatus += 1;
+                        if(pStatus+10> total.intValue()){
+                            limit=true;
+                            break;
+
+                        }
+
+                        handler.post(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                // TODO Auto-generated method stub
+                                calProgress.setProgress(pStatus);
+                            }
+                        });
+                        try {
+                            // Sleep for 200 milliseconds.
+                            // Just to display the progress slowly
+                            Thread.sleep(1);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+            // notify user you are not online
+        }
 
 
-        buildFitnessClient();
     }
 
     @Override
@@ -138,7 +189,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
 //        TODO Add any items for bar menu if available
 
         return super.onOptionsItemSelected(item);
@@ -150,12 +200,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int id = item.getItemId();
 
         if (id == R.id.nav_fitness) {
+
             // Main Activity which is home
         } else if (id == R.id.nav_settings) {
-
+            Intent intent=new Intent(MainActivity.this,Setting.class);
+            startActivity(intent);
         } else if (id == R.id.nav_share) {
-
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,"Health Keep");
+            String shareMessage="Hey i am using this app to keep myself fit";
+            shareIntent.putExtra(android.content.Intent.EXTRA_TEXT,shareMessage);
+            startActivity(Intent.createChooser(shareIntent,"Sharing via"));
         } else if (id == R.id.nav_feedback) {
+            Intent Email = new Intent(Intent.ACTION_SEND);
+            Email.setType("text/html");
+            Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "healthkeep@anip.xyz" });
+            Email.putExtra(Intent.EXTRA_SUBJECT, "Feedback");
+            Email.putExtra(Intent.EXTRA_TEXT, "Dear ...," + "");
+            startActivity(Intent.createChooser(Email, "Send Feedback:"));
 
         }
 
@@ -186,11 +249,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            TextView mtextdata = (TextView) findViewById(R.id.section_label);
-            mtextdata.setText(String.valueOf(total));
+            TextView cal_burned = (TextView) findViewById(R.id.cal_burned);
+            cal_burned.setText("Calories burned : "+ String.valueOf(total));
+
             calProgress = (ProgressBar)findViewById(R.id.circularProgressbar);
             calProgress.setMax(total.intValue());
-            final DatabaseHelper db = new DatabaseHelper(MainActivity.this);
+            TextView cal_consumed = (TextView)findViewById(R.id.cal_consumed);
+            final DatabaseHelper db =new DatabaseHelper(MainActivity.this);
+            Log.i("hell",String.valueOf(db.getTodayCalorieCount()));
+            cal_consumed.setText("Calories consumed: "+ String.valueOf(db.getTodayCalorieCount()));
+            prefs = getSharedPreferences("application_settings", 0);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt("total",total.intValue());
+            editor.putInt("consumed",Integer.valueOf(db.getTodayCalorieCount()));
+            editor.commit();
+
 
 
 //             calProgress.setProgressDrawable(draw);
@@ -199,8 +272,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 @Override
                 public void run() {
                     // TODO Auto-generated method stub
-                    Log.i("hell", String.valueOf(db.getTotalCalorieCount()));
-                    while (pStatus < db.getTotalCalorieCount()) {
+
+                    Log.i("hell", String.valueOf(db.getTodayCalorieCount()));
+                    while (pStatus < db.getTodayCalorieCount()) {
                         pStatus += 1;
                         if(pStatus+10> total.intValue()){
                             limit=true;
@@ -219,7 +293,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         try {
                             // Sleep for 200 milliseconds.
                             // Just to display the progress slowly
-                            Thread.sleep(5);
+                            Thread.sleep(1);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

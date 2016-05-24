@@ -56,8 +56,8 @@ public class PlaceholderFragment extends Fragment {
         View rootView=null;
         if(getArguments().getInt(ARG_SECTION_NUMBER)==1) {
             rootView = inflater.inflate(R.layout.home_tabbed, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+//            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
+//            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 
         }
 
@@ -72,6 +72,15 @@ public class PlaceholderFragment extends Fragment {
 
             lstView = (ListView) rootView.findViewById(R.id.listView);
             lstView.setAdapter(fa);
+            List<FoodItem> fooditems = db.getTodayFoodItems();
+
+            for (FoodItem fitem : fooditems) {
+                mArrFood.add(fitem);
+//                        total=total+ Integer.parseInt(fitem.get_cal_count());
+            }
+
+            fa.notifyDataSetChanged();
+
 
             swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
             swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

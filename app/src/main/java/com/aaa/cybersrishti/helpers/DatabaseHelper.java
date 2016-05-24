@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.aaa.cybersrishti.model.FoodItem;
 
@@ -23,7 +24,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     Date _date;
     private static final String DATABASE_NAME = "foodKeeper";
-
+    public int today_calorie_count=0;
     private static final String TABLE_FOOD = "fooditems";
 
     private static final String KEY_ID = "id";
@@ -34,7 +35,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
-
     @Override
     public void onCreate(SQLiteDatabase db) {
         String CREATE_FOOD_TABLE = "CREATE TABLE " + TABLE_FOOD + "("
@@ -53,11 +53,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public void addFoodItem(FoodItem foodItem) {
         SQLiteDatabase db = this.getWritableDatabase();
-
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         ContentValues values = new ContentValues();
         values.put(KEY_NAME, foodItem.get_name());
         values.put(KEY_CAL_COUNT, foodItem.get_cal_count());
-
+        values.put(KEY_DATESTAMP,sdf.format(date));
         db.insert(TABLE_FOOD, null, values);
         db.close();
     }
@@ -118,6 +119,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 fooditem.set_id(Integer.parseInt(cursor.getString(0)));
                 fooditem.set_name(cursor.getString(1));
                 fooditem.set_cal_count(cursor.getString(2));
+                Log.i("hell", String.valueOf(today_calorie_count));
                 try {
                     fooditem.set_date(new SimpleDateFormat("yyyy-MM-dd").parse(cursor.getString(3)));
                 } catch (ParseException e) {
@@ -129,7 +131,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return fooditemList;
     }
+    public int getTodayCalorieCount() {
+        String selectQuery = "SELECT * FROM " + TABLE_FOOD + " WHERE " + KEY_DATESTAMP + " = \"" + new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()) + "\"";
+        today_calorie_count=0;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
 
+        if (cursor.moveToFirst()) {
+            do {
+                today_calorie_count +=Integer.valueOf(cursor.getString(2));
+                Log.i("hell", String.valueOf(today_calorie_count));
+
+            } while (cursor.moveToNext());
+        }
+
+        return today_calorie_count;
+    }
     public int updateFoodItem(FoodItem fooditem) {
         SQLiteDatabase db = this.getWritableDatabase();
 
