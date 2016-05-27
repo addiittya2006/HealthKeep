@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -26,6 +27,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,19 +57,19 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
-    public static GoogleApiClient mClient = null;
-    ProgressBar calProgress;
+    private static GoogleApiClient mClient = null;
+    private ProgressBar calProgress;
     private static Float total=null;
-    String text_data = null;
     static Value totalcount;
-    int pStatus = 0;
+    private String text_data = null;
+    private int pStatus = 0;
     private Handler handler = new Handler();
-    Boolean limit=false;
+    private Boolean limit=false;
     private SectionsPagerAdapter mSectionsPagerAdapter;
     private ViewPager mViewPager;
 
-    SharedPreferences prefs;
-    boolean exit = false;
+    private SharedPreferences prefs;
+    private boolean exit = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,25 +80,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
         mViewPager = (ViewPager) findViewById(R.id.container);
+        assert mViewPager != null;
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-        //fitApi = (Button) findViewById(R.id.fit);
 
         prefs = getSharedPreferences("application_settings", 0);
         
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
+        if (tabLayout != null) {
+            tabLayout.setupWithViewPager(mViewPager);
+        }
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, AddfoodActivity.class);
-                MainActivity.this.startActivity(intent);
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
-            }
-        });
+        if (fab != null) {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(MainActivity.this, AddfoodActivity.class);
+                    MainActivity.this.startActivity(intent);
+                }
+            });
+        }
 
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -106,12 +111,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        View header=navigationView.getHeaderView(0);
-        ImageView profile = (ImageView) header.findViewById(R.id.imageView);
-        TextView name = (TextView)header.findViewById(R.id.name);
+        if (navigationView != null) {
+            navigationView.setNavigationItemSelectedListener(this);
+        }
+        View header= navigationView != null ? navigationView.getHeaderView(0) : null;
+        ImageView profile = (ImageView) (header != null ? header.findViewById(R.id.imageView) : null);
+        TextView name = (TextView) (header != null ? header.findViewById(R.id.name) : null);
         if (!prefs.getString("pic", "").equals("")) {
             Picasso.with(this).load(prefs.getString("pic", "")).into(profile);
+            assert name != null;
             name.setText(prefs.getString("name",""));
         }
 //
@@ -162,13 +170,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // notify user you are not online
         }
 
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+//        buildFitnessClient();
     }
 
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
 
+        assert drawer != null;
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (exit) {
@@ -189,12 +203,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+
+//        int id = item.getItemId();
 //        TODO Add any items for bar menu if available
 
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -209,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
             shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,"Health Keep");
-            String shareMessage="Hey i am using this app to keep myself fit";
+            String shareMessage="Hey i am using this app to keep myself fit.\nPlease give it a try\nhttp://play.google.com/store/apps/details?id=" +getPackageName();
             shareIntent.putExtra(android.content.Intent.EXTRA_TEXT,shareMessage);
             startActivity(Intent.createChooser(shareIntent,"Sharing via"));
         } else if (id == R.id.nav_feedback) {
@@ -223,7 +238,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        if (drawer != null) {
+            drawer.closeDrawer(GravityCompat.START);
+        }
         return true;
     }
     private class ReadingDataTask extends AsyncTask<Void, Void, Void> {
@@ -250,8 +267,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         @Override
         protected void onPostExecute(Void aVoid) {
             TextView cal_burned = (TextView) findViewById(R.id.cal_burned);
-            cal_burned.setText("Calories burned : "+ String.valueOf(total));
-
+            if(total == 0){
+                LinearLayout home_content = (LinearLayout)findViewById(R.id.home_content);
+                RelativeLayout error_container = (RelativeLayout) findViewById(R.id.error_container);
+                home_content.setVisibility(View.GONE);
+                error_container.setVisibility(View.VISIBLE);
+                Button _fit_api=(Button)findViewById(R.id.fit_app);
+                _fit_api.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        final String appPackageName = "com.google.android.apps.fitness";// getPackageName() from Context or Activity object
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+                        } catch (android.content.ActivityNotFoundException anfe) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appPackageName)));
+                        }
+                    }
+                });
+            } else{
+                assert cal_burned != null;
+                cal_burned.setText("Calories burned : "+ String.valueOf(total));
+            }
             calProgress = (ProgressBar)findViewById(R.id.circularProgressbar);
             calProgress.setMax(total.intValue());
             TextView cal_consumed = (TextView)findViewById(R.id.cal_consumed);
@@ -286,11 +322,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                             @Override
                             public void run() {
-                                // TODO Auto-generated method stub
                                 calProgress.setProgress(pStatus);
                             }
                         });
+
                         try {
+
                             // Sleep for 200 milliseconds.
                             // Just to display the progress slowly
                             Thread.sleep(1);
@@ -302,12 +339,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }).start();
              // Maximum Progress
             //fitApi.setVisibility(View.GONE);
-            if(limit==true)
+            if(limit)
             Toast.makeText(MainActivity.this,"You have reached the fucking deadline",Toast.LENGTH_LONG).show();
         }
     }
 
-    public static void printData(DataReadResult dataReadResult) {
+    private static void printData(DataReadResult dataReadResult) {
         if (dataReadResult.getBuckets().size() > 0) {
             //Log.i("hell",dataReadResult.getBuckets());
             Log.i("hell", "Number of returned buckets of DataSets is: "
@@ -328,7 +365,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private static void dumpDataSet(DataSet dataSet) {
-        DateFormat dateFormat = DateFormat.getTimeInstance();
         total= Float.valueOf(0);
         for (DataPoint dp : dataSet.getDataPoints()) {
             SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
@@ -380,31 +416,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    public static DataReadRequest queryFitnessData() throws ParseException {
+    private static DataReadRequest queryFitnessData() throws ParseException {
 
         Calendar cal = Calendar.getInstance();
         int year = cal.get(Calendar.YEAR);
         int month = cal.get(Calendar.MONTH)+1;
         int day =cal.get(Calendar.DAY_OF_MONTH);
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        int minute = cal.get(Calendar.MINUTE);
-        int second = cal.get(Calendar.SECOND);
         String startDateString = String.valueOf(year)+"-"+"0"+String.valueOf(month)+"-"+String.valueOf(day)+" "+"0"+"00"+":"+"00"+":"+"00";
         Date now = new Date();
-        //Log.i("hell",startDate);
-//        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy");
         cal.setTime(now);
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date startDate = df.parse(startDateString);
         long startTime = startDate.getTime();
-//        Log.i("hell", String.valueOf(startTime));
-//        Log.i("hell",df.format(String.valueOf(startDate)));
-
         long endTime = cal.getTimeInMillis();
         java.text.DateFormat dateFormat = DateFormat.getDateInstance();
         cal.add(Calendar.DAY_OF_MONTH, -1);
-//        long startTime = cal.getTimeInMillis();
-
 
         Log.i("hell", "Range Start: " + dateFormat.format(startTime));
         Log.i("hell", "Range End: " + dateFormat.format(endTime));
@@ -413,8 +439,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 .read(DataType.AGGREGATE_CALORIES_EXPENDED)
                 .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
                 .build();
-        // [END build_read_data_request]
-        return readRequest;
-    }
 
+        return readRequest;
+
+    }
 }

@@ -16,6 +16,7 @@ import com.aaa.cybersrishti.helpers.DatabaseHelper;
 import com.aaa.cybersrishti.model.FoodItem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,6 +80,7 @@ public class PlaceholderFragment extends Fragment {
 //                        total=total+ Integer.parseInt(fitem.get_cal_count());
             }
 
+            Collections.reverse(mArrFood);
             fa.notifyDataSetChanged();
 
 
@@ -95,7 +97,7 @@ public class PlaceholderFragment extends Fragment {
                         mArrFood.add(fitem);
 //                        total=total+ Integer.parseInt(fitem.get_cal_count());
                     }
-
+                    Collections.reverse(mArrFood);
                     fa.notifyDataSetChanged();
 
                     swipeRefreshLayout.setRefreshing(false);

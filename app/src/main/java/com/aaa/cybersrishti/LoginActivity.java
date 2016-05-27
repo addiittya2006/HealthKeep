@@ -1,9 +1,12 @@
 package com.aaa.cybersrishti;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.View;
@@ -13,7 +16,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.fitness.Fitness;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 
@@ -66,8 +68,21 @@ public class LoginActivity extends ActionBarActivity implements GoogleApiClient.
 
     @Override
     public void onConnected(Bundle bundle) {
-        googleLogin();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS)
+                != PackageManager.PERMISSION_GRANTED) {
 
+            requestAccountsPermission();
+
+        } else {
+            googleLogin();
+        }
+    }
+
+    private void requestAccountsPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.GET_ACCOUNTS)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.GET_ACCOUNTS}, 1);
+        }
     }
 
     public void googleLogin(View v) {
@@ -104,6 +119,7 @@ public class LoginActivity extends ActionBarActivity implements GoogleApiClient.
 //            Toast.makeText(this,name + pic + email,Toast.LENGTH_LONG).show();
             Intent intent=new Intent(LoginActivity.this,MainActivity.class);
             startActivity(intent);
+            finish();
 
         }
         else

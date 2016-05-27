@@ -9,6 +9,9 @@
     <string name="food_item">Food Item</string>
     <string name="cal_count">Calories?</string>
 
+    <string name="height">Enter Your Height in cm.s</string>
+    <string name="weight">Enter your Weight in Kg.s</string>
+
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="title_activity_addfood">Add Food</string>
 </resources>
