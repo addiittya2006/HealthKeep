@@ -28,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -268,8 +269,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onPostExecute(Void aVoid) {
             TextView cal_burned = (TextView) findViewById(R.id.cal_burned);
             if(total == 0){
-                LinearLayout home_content = (LinearLayout)findViewById(R.id.home_content);
+                ScrollView home_content = (ScrollView) findViewById(R.id.home_content);
                 RelativeLayout error_container = (RelativeLayout) findViewById(R.id.error_container);
+                FloatingActionButton add_food = (FloatingActionButton) findViewById(R.id.fab);
+                add_food.setVisibility(View.GONE);
                 home_content.setVisibility(View.GONE);
                 error_container.setVisibility(View.VISIBLE);
                 Button _fit_api=(Button)findViewById(R.id.fit_app);
@@ -286,14 +289,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             } else{
                 assert cal_burned != null;
-                cal_burned.setText("Calories burned : "+ String.valueOf(total));
+                cal_burned.setText("Calories burned : "+ String.valueOf(total.intValue()));
             }
             calProgress = (ProgressBar)findViewById(R.id.circularProgressbar);
             calProgress.setMax(total.intValue());
             TextView cal_consumed = (TextView)findViewById(R.id.cal_consumed);
+            TextView percentage = (TextView)findViewById(R.id.per_remaining);
             final DatabaseHelper db =new DatabaseHelper(MainActivity.this);
             Log.i("hell",String.valueOf(db.getTodayCalorieCount()));
+            Double per =0.0;
             cal_consumed.setText("Calories consumed: "+ String.valueOf(db.getTodayCalorieCount()));
+            if(total.intValue() >= db.getTodayCalorieCount())
+                {
+                    per= 100.0*db.getTodayCalorieCount()/total.intValue();
+                    Log.i("hell", "hgfhgfhf"+String.valueOf(per));
+                }
+
+            percentage.setText(String.valueOf(per.intValue())+"% Consumed");
             prefs = getSharedPreferences("application_settings", 0);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putInt("total",total.intValue());

@@ -70,7 +70,7 @@ public class PlaceholderFragment extends Fragment {
 
             mArrFood = new ArrayList<>();
             fa = new FoodFeedAdapter(mArrFood, rootView.getContext());
-
+            fa.notifyDataSetChanged();
             lstView = (ListView) rootView.findViewById(R.id.listView);
             lstView.setAdapter(fa);
             List<FoodItem> fooditems = db.getTodayFoodItems();
