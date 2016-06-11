@@ -14,4 +14,6 @@
 
     <string name="section_format">Hello World from section: %1$d</string>
     <string name="title_activity_addfood">Add Food</string>
+
+    <string name="calories">%1$s Calories</string>
 </resources>

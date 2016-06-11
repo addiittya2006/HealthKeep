@@ -3,12 +3,10 @@ package com.aaa.cybersrishti.fragments;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.aaa.cybersrishti.R;
 import com.aaa.cybersrishti.adapters.FoodFeedAdapter;
@@ -72,6 +70,7 @@ public class PlaceholderFragment extends Fragment {
             fa = new FoodFeedAdapter(mArrFood, rootView.getContext());
             fa.notifyDataSetChanged();
             lstView = (ListView) rootView.findViewById(R.id.listView);
+            lstView.setDivider(null);
             lstView.setAdapter(fa);
             List<FoodItem> fooditems = db.getTodayFoodItems();
 

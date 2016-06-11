@@ -11,7 +11,6 @@ import com.aaa.cybersrishti.R;
 import com.aaa.cybersrishti.model.FoodItem;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * Created by addiittya on 16/05/16.
@@ -63,7 +62,7 @@ public class FoodFeedAdapter extends BaseAdapter {
 
         FoodItem item = mArrFoodItem.get(i);
         vh.tvName.setText(item.get_name());
-        vh.tvCalories.setText(item.get_cal_count());
+        vh.tvCalories.setText(viewGroup.getContext().getString(R.string.calories, item.get_cal_count()));
         return view;
     }
 
