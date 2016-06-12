@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:src="@drawable/nofit"
+        android:layout_marginBottom="80dp"
         />
     <Button
         android:layout_width="200dp"
@@ -26,8 +27,33 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:gravity="center"
-        android:layout_marginBottom="30dp" />
+        android:layout_marginBottom="20dp" />
 </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/cal_warning"
+        android:visibility="gone">
+        <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+            android:src="@drawable/eatless"
+            android:layout_marginTop="30dp"
+            android:layout_marginBottom="150dp"
+            android:scaleType="fitStart"
+            android:id="@+id/warning_image"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:paddingBottom="80dp"
+            android:textSize="16dp"
+            android:layout_centerHorizontal="true"
+            android:text="Burn 200 kcal more two maintain your weight"
+            android:id="@+id/cal_exceed"
+        />
+        </RelativeLayout>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"

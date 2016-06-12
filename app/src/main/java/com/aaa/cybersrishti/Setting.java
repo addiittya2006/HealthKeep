@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
+import com.aaa.cybersrishti.helpers.DatabaseHelper;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -42,8 +43,10 @@ public class Setting extends AppCompatActivity implements GoogleApiClient.Connec
                                               mGoogleApiClient.connect();
                                               // updateUI(false);
 //                                              SharedPreferences
+                                              DatabaseHelper db =new DatabaseHelper(Setting.this);
                                               prefs = getSharedPreferences("application_settings", 0);
                                               prefs.edit().clear().commit();
+                                              db.truncateTable();
                                               Intent intent =new Intent(Setting.this,Splash.class);
                                               finishAffinity();
                                               startActivity(intent);

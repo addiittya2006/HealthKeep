@@ -174,6 +174,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return cursor.getCount();
     }
+    public void truncateTable(){
+        String query="DELETE FROM  "+TABLE_FOOD;
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL(query);
+    }
 
     public int getTotalCalorieCount() {
         String countQuery = "SELECT  * FROM " + TABLE_FOOD;

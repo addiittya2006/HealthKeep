@@ -61,8 +61,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static GoogleApiClient mClient = null;
     private ProgressBar calProgress;
     private static Float total=null;
+    int exceeded_calorie=0;
     static Value totalcount;
+    ScrollView home_content;
     private String text_data = null;
+    final DatabaseHelper db =new DatabaseHelper(MainActivity.this);
     private int pStatus = 0;
     private Handler handler = new Handler();
     private Boolean limit=false;
@@ -133,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         }
         else {
+            pStatus=0;
             calProgress = (ProgressBar)findViewById(R.id.circularProgressbar);
             calProgress.setMax(prefs.getInt("total",0));
             new Thread(new Runnable() {
@@ -143,8 +147,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     final DatabaseHelper db = new DatabaseHelper(MainActivity.this);
                     Log.i("hell", String.valueOf(db.getTodayCalorieCount()));
                     while (pStatus < prefs.getInt("consumed",0)) {
-                        pStatus += 1;
-                        if(pStatus+10> total.intValue()){
+                        pStatus += 2;
+                        if(pStatus> total.intValue()){
                             limit=true;
                             break;
 
@@ -269,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         protected void onPostExecute(Void aVoid) {
             TextView cal_burned = (TextView) findViewById(R.id.cal_burned);
             if(total == 0){
-                ScrollView home_content = (ScrollView) findViewById(R.id.home_content);
+                home_content = (ScrollView) findViewById(R.id.home_content);
                 RelativeLayout error_container = (RelativeLayout) findViewById(R.id.error_container);
                 FloatingActionButton add_food = (FloatingActionButton) findViewById(R.id.fab);
                 add_food.setVisibility(View.GONE);
@@ -287,7 +291,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                     }
                 });
-            } else{
+            }
+            else if(db.getTodayCalorieCount() >= total.intValue()){
+                RelativeLayout warning_container=(RelativeLayout)findViewById(R.id.cal_warning);
+                warning_container.setVisibility(View.VISIBLE);
+                home_content=(ScrollView)findViewById(R.id.home_content);
+                TextView cal_exceed=(TextView)findViewById(R.id.cal_exceed);
+                Log.i("hello", String.valueOf(db.getTodayCalorieCount()));
+                Log.i("hello", String.valueOf(total.intValue()));
+                exceeded_calorie=db.getTodayCalorieCount()-total.intValue();
+                cal_exceed.setText("You have reached the deadline for today...... \n\nExtra calories consumed Today: "+exceeded_calorie+" kcal");
+                home_content.setVisibility(View.GONE);
+
+            }
+            else{
                 assert cal_burned != null;
                 cal_burned.setText("Calories burned : "+ String.valueOf(total.intValue()));
             }
@@ -295,7 +312,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             calProgress.setMax(total.intValue());
             TextView cal_consumed = (TextView)findViewById(R.id.cal_consumed);
             TextView percentage = (TextView)findViewById(R.id.per_remaining);
-            final DatabaseHelper db =new DatabaseHelper(MainActivity.this);
             Log.i("hell",String.valueOf(db.getTodayCalorieCount()));
             Double per =0.0;
             cal_consumed.setText("Calories consumed: "+ String.valueOf(db.getTodayCalorieCount()));
@@ -322,11 +338,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     // TODO Auto-generated method stub
 
                     Log.i("hell", String.valueOf(db.getTodayCalorieCount()));
-                    while (pStatus < db.getTodayCalorieCount()) {
-                        pStatus += 1;
-                        if(pStatus+10> total.intValue()){
+                    while (pStatus < db.getTodayCalorieCount() &&  pStatus<= total.intValue()) {
+
+                        pStatus += 5;
+                        if(pStatus==total.intValue()){
                             limit=true;
-                            break;
 
                         }
 
@@ -349,10 +365,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 }
             }).start();
+            Log.i("hell", String.valueOf(limit));
+
              // Maximum Progress
             //fitApi.setVisibility(View.GONE);
-            if(limit)
-            Toast.makeText(MainActivity.this,"You have reached the fucking deadline",Toast.LENGTH_LONG).show();
+//            if(limit)
+//            Toast.makeText(MainActivity.this,"You have reached the fucking deadline",Toast.LENGTH_LONG).show();
         }
     }
 
