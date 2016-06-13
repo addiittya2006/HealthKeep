@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.aaa.cybersrishti.MainActivity;
 import com.aaa.cybersrishti.R;
 import com.aaa.cybersrishti.adapters.FoodFeedAdapter;
 import com.aaa.cybersrishti.helpers.DatabaseHelper;
@@ -75,39 +74,38 @@ public class PlaceholderFragment extends Fragment {
             if(mArrFood.size()!=0) {
                 lstView.setAdapter(fa);
             }
-                swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
-                TextView no_consumption = (TextView) rootView.findViewById(R.id.none_consumed);
-                Log.i("hrll", "nhjhjh" + String.valueOf(db.getTodayCalorieCount()));
-                if (!(db.getTodayCalorieCount() > 0)) {
-                    Log.i("hekk", "entered uf");
-                    no_consumption.setVisibility(View.VISIBLE);
-                    swipeRefreshLayout.setVisibility(View.GONE);
-                } else {
-                    no_consumption.setVisibility(View.GONE);
-                    swipeRefreshLayout.setVisibility(View.VISIBLE);
-                    Collections.reverse(mArrFood);
-                    fa.notifyDataSetChanged();
-                    swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                        @Override
-                        public void onRefresh() {
-                            swipeRefreshLayout.setRefreshing(true);
-                            mArrFood.clear();
+            swipeRefreshLayout = (SwipeRefreshLayout) rootView.findViewById(R.id.swipe_refresh_layout);
+            TextView no_consumption = (TextView) rootView.findViewById(R.id.none_consumed);
+            Log.i("hrll", "nhjhjh" + String.valueOf(db.getTodayCalorieCount()));
+            if (!(db.getTodayCalorieCount() > 0)) {
+                Log.i("hekk", "entered uf");
+                no_consumption.setVisibility(View.VISIBLE);
+                swipeRefreshLayout.setVisibility(View.GONE);
+            } else {
+                no_consumption.setVisibility(View.GONE);
+                swipeRefreshLayout.setVisibility(View.VISIBLE);
+                Collections.reverse(mArrFood);
+                fa.notifyDataSetChanged();
+                swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        swipeRefreshLayout.setRefreshing(true);
+                        mArrFood.clear();
 
-                            List<FoodItem> fooditems =  db.getTodayFoodItems();
-                            for (FoodItem fitem : fooditems) {
-                                mArrFood.add(fitem);
-                            }
-
-                            Collections.reverse(mArrFood);
-                            fa.notifyDataSetChanged();
-                            swipeRefreshLayout.setRefreshing(false);
+                        List<FoodItem> fooditems =  db.getTodayFoodItems();
+                        for (FoodItem fitem : fooditems) {
+                            mArrFood.add(fitem);
                         }
-                    });
-                }
 
+                        Collections.reverse(mArrFood);
+                        fa.notifyDataSetChanged();
+                        swipeRefreshLayout.setRefreshing(false);
+                    }
+                });
+            }
         }
-            return rootView;
+        return rootView;
 
-        }
     }
+}
 

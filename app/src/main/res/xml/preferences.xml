@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <Preference
+        android:icon="@drawable/ic_power_settings_new_black_24dp"
+        android:key="logout"
+        android:title="Sign Out" />
+
+</PreferenceScreen>

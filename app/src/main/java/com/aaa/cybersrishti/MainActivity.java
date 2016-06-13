@@ -15,17 +15,16 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -102,7 +101,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(MainActivity.this, AddfoodActivity.class);
-                    MainActivity.this.startActivity(intent);
+//                    startActivity(intent);
+                    startActivityForResult(intent, 99);
                 }
             });
         }
@@ -178,6 +178,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 99 && resultCode == RESULT_OK) {
+            TextView no_consumption = (TextView) findViewById(R.id.none_consumed);
+            SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh_layout);
+            no_consumption.setVisibility(View.GONE);
+            swipeRefreshLayout.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
 //        buildFitnessClient();
@@ -223,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             // Main Activity which is home
         } else if (id == R.id.nav_settings) {
-            Intent intent=new Intent(MainActivity.this,Setting.class);
+            Intent intent=new Intent(MainActivity.this,SettingsActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_share) {
             Intent shareIntent = new Intent(Intent.ACTION_SEND);

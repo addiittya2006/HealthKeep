@@ -1,5 +1,7 @@
 package com.aaa.cybersrishti;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -14,6 +16,7 @@ public class AddfoodActivity extends AppCompatActivity {
     DatabaseHelper db = new DatabaseHelper(this);
     EditText etfood;
     EditText etcal;
+    Intent i;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +43,8 @@ public class AddfoodActivity extends AppCompatActivity {
             case R.id.action_go:
 
                 db.addFoodItem(new FoodItem(etfood.getText().toString(), etcal.getText().toString()));
-
+                i = getIntent();
+                setResult(Activity.RESULT_OK, i);
                 finish();
 
             default:
