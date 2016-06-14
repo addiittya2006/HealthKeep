@@ -135,9 +135,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (activeNetwork != null && activeNetwork.isConnected()) {
             buildFitnessClient();
         }
-        else {
-            setProgress();
-        }
+//        else {
+//            setProgress();
+//        }
 
     }
 
@@ -149,6 +149,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             no_consumption.setVisibility(View.GONE);
             swipeRefreshLayout.setVisibility(View.VISIBLE);
         }
+    }
+
+    public float getTotalCalories(){
+        return total;
     }
 
     private void setProgress() {

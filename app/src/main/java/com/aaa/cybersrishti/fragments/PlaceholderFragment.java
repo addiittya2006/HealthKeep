@@ -1,6 +1,8 @@
 package com.aaa.cybersrishti.fragments;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
@@ -8,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.aaa.cybersrishti.R;
@@ -33,6 +36,10 @@ public class PlaceholderFragment extends Fragment {
     private ListView lstView;
     private FoodFeedAdapter fa;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private ProgressBar calProgress;
+    private SharedPreferences prefs;
+    private int pStatus = 0;
+    private Handler handler = new Handler();
 
     private static final String ARG_SECTION_NUMBER = "section_number";
 
@@ -54,11 +61,51 @@ public class PlaceholderFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        prefs = getActivity().getSharedPreferences("application_settings", 0);
         View rootView = null;
         if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
             rootView = inflater.inflate(R.layout.home_tabbed, container, false);
 //            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
 //            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+
+            calProgress = (ProgressBar) rootView.findViewById(R.id.circularProgressbar);
+            Log.i("no of caaaaaccchhhhheee", "onCreate: " + prefs.getInt("total", 0));
+
+            total = prefs.getInt("total", 0);
+            if (total != 0) {
+                calProgress.setMax(total);
+            }
+//            else {
+//            if (calProgress != null){
+//                calProgress.setMax(1000);
+//            }
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (pStatus < prefs.getInt("consumed",0)) {
+
+                        pStatus += 5;
+                        if(pStatus > total){
+//                            limit=true;
+                            break;
+                        }
+
+                        handler.post(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                calProgress.setProgress(pStatus);
+                            }
+                        });
+
+                        try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+                    }
+                }
+            }).start();
+
+
+//            cal_burned.setText("Calories burned : "+ String.valueOf(total.intValue()));
 
         } else {
             rootView = inflater.inflate(R.layout.feed_tabbed, container, false);
