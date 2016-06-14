@@ -25,14 +25,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aaa.cybersrishti.adapters.FoodFeedAdapter;
 import com.aaa.cybersrishti.adapters.SectionsPagerAdapter;
 import com.aaa.cybersrishti.helpers.DatabaseHelper;
+import com.aaa.cybersrishti.model.FoodItem;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -51,7 +54,9 @@ import com.squareup.picasso.Picasso;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -59,7 +64,11 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     private static GoogleApiClient mClient = null;
     private ProgressBar calProgress;
+    SwipeRefreshLayout swipeRefreshLayout;
+    private ListView lstView;
     private static Float total=null;
+    private ArrayList<FoodItem> mArrFood;
+    private FoodFeedAdapter fa;
     int exceeded_calorie=0;
     static Value totalcount;
     ScrollView home_content;
@@ -145,9 +154,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 99 && resultCode == RESULT_OK) {
             TextView no_consumption = (TextView) findViewById(R.id.none_consumed);
-            SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh_layout);
+            swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh_layout);
+            lstView = (ListView)findViewById(R.id.listView);
+            lstView.setDivider(null);
+            mArrFood = new ArrayList<>();
+            final DatabaseHelper db = new DatabaseHelper(this);
+            List<FoodItem> fooditems = db.getTodayFoodItems();
+            fa = new FoodFeedAdapter(mArrFood, this);
+            for (FoodItem fitem : fooditems) {
+                mArrFood.add(fitem);
+            }
+            if(mArrFood.size()!=0) {
+                Collections.reverse(mArrFood);
+                lstView.setAdapter(fa);
+            }
             no_consumption.setVisibility(View.GONE);
             swipeRefreshLayout.setVisibility(View.VISIBLE);
+            swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    swipeRefreshLayout.setRefreshing(true);
+                    mArrFood.clear();
+
+                    List<FoodItem> fooditems =  db.getTodayFoodItems();
+                    for (FoodItem fitem : fooditems) {
+                        mArrFood.add(fitem);
+                    }
+
+                    Collections.reverse(mArrFood);
+                    fa.notifyDataSetChanged();
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            });
         }
     }
 
