@@ -86,14 +86,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         assert mViewPager != null;
         mViewPager.setAdapter(mSectionsPagerAdapter);
 
-
         prefs = getSharedPreferences("application_settings", 0);
-        
+//        calProgress = (ProgressBar) findViewById(R.id.circularProgressbar);
+
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         if (tabLayout != null) {
             tabLayout.setupWithViewPager(mViewPager);
         }
 
+//        calProgress.setMax(1000);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if (fab != null) {
@@ -107,7 +108,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             });
         }
 
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -118,61 +118,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (navigationView != null) {
             navigationView.setNavigationItemSelectedListener(this);
         }
+
         View header= navigationView != null ? navigationView.getHeaderView(0) : null;
         ImageView profile = (ImageView) (header != null ? header.findViewById(R.id.imageView) : null);
         TextView name = (TextView) (header != null ? header.findViewById(R.id.name) : null);
+
         if (!prefs.getString("pic", "").equals("")) {
             Picasso.with(this).load(prefs.getString("pic", "")).into(profile);
             assert name != null;
             name.setText(prefs.getString("name",""));
         }
-//
-//        ConnectivityManager conMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+
         final ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         final NetworkInfo activeNetwork = conMgr.getActiveNetworkInfo();
+
         if (activeNetwork != null && activeNetwork.isConnected()) {
             buildFitnessClient();
-            // notify user you are online
-
         }
         else {
-            pStatus=0;
-            calProgress = (ProgressBar)findViewById(R.id.circularProgressbar);
-            calProgress.setMax(prefs.getInt("total",0));
-            new Thread(new Runnable() {
-
-                @Override
-                public void run() {
-                    // TODO Auto-generated method stub
-                    final DatabaseHelper db = new DatabaseHelper(MainActivity.this);
-                    Log.i("hell", String.valueOf(db.getTodayCalorieCount()));
-                    while (pStatus < prefs.getInt("consumed",0)) {
-                        pStatus += 2;
-                        if(pStatus> total.intValue()){
-                            limit=true;
-                            break;
-
-                        }
-
-                        handler.post(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                // TODO Auto-generated method stub
-                                calProgress.setProgress(pStatus);
-                            }
-                        });
-                        try {
-                            // Sleep for 200 milliseconds.
-                            // Just to display the progress slowly
-                            Thread.sleep(1);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }).start();
-            // notify user you are not online
+            setProgress();
         }
 
     }
@@ -187,10 +151,47 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    private void setProgress() {
+
+        pStatus=0;
+        calProgress = (ProgressBar) findViewById(R.id.circularProgressbar);
+        Log.i("no of caaaaaccchhhhheee", "onCreate: " + prefs.getInt("total", 0));
+
+        if (prefs.getInt("total", 0) != 0) {
+            calProgress.setMax(prefs.getInt("total", 0));
+        }else {
+//            if (calProgress != null){
+            calProgress.setMax(1000);
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (pStatus < prefs.getInt("consumed",0)) {
+
+                    pStatus += 5;
+                    if(pStatus> total.intValue()){
+                        limit=true;
+                        break;
+                    }
+
+                    handler.post(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            calProgress.setProgress(pStatus);
+                        }
+                    });
+
+                    try { Thread.sleep(1); } catch (InterruptedException e) { e.printStackTrace(); }
+                }
+            }
+        }).start();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
-//        buildFitnessClient();
     }
 
     @Override
@@ -201,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (exit) {
-            finish(); // finish activity
+            finish();
         } else {
             Toast.makeText(this, "Press Back again to Exit.",
                     Toast.LENGTH_SHORT).show();
@@ -217,11 +218,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
 //        int id = item.getItemId();
-//        TODO Add any items for bar menu if available
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -230,7 +227,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int id = item.getItemId();
 
         if (id == R.id.nav_fitness) {
-
             // Main Activity which is home
         } else if (id == R.id.nav_settings) {
             Intent intent=new Intent(MainActivity.this,SettingsActivity.class);
@@ -239,17 +235,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
             shareIntent.putExtra(android.content.Intent.EXTRA_SUBJECT,"Health Keep");
-            String shareMessage="Hey i am using this app to keep myself fit.\nPlease give it a try\nhttp://play.google.com/store/apps/details?id=" +getPackageName();
+            String shareMessage="Hey, I am using this app to keep myself fit.\nDownload Here:\nhttp://play.google.com/store/apps/details?id=" +getPackageName();
             shareIntent.putExtra(android.content.Intent.EXTRA_TEXT,shareMessage);
-            startActivity(Intent.createChooser(shareIntent,"Sharing via"));
+            startActivity(Intent.createChooser(shareIntent, "Sharing via:"));
         } else if (id == R.id.nav_feedback) {
-            Intent Email = new Intent(Intent.ACTION_SEND);
-            Email.setType("text/html");
-            Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "healthkeep@anip.xyz" });
-            Email.putExtra(Intent.EXTRA_SUBJECT, "Feedback");
-            Email.putExtra(Intent.EXTRA_TEXT, "Dear ...," + "");
-            startActivity(Intent.createChooser(Email, "Send Feedback:"));
-
+            Intent emailIntent = new Intent(Intent.ACTION_SENDTO);
+            emailIntent.setType("text/plain");
+//            Email.putExtra(Intent.EXTRA_EMAIL, new String[] { "healthkeep@anip.xyz" });
+//            Email.putExtra(Intent.EXTRA_SUBJECT, "Feedback");
+//            Email.putExtra(Intent.EXTRA_TEXT, "Dear ...," + "");
+            Uri uri = Uri.parse("mailto:healthkeep@anip.xyz?subject=Healthkeep%20Feedback&body=Sir%2C%0AI%20would%20like%20to%20provide%20feedback%20for%20your%20app.%0A");
+            emailIntent.setData(uri);
+            startActivity(Intent.createChooser(emailIntent, "Send Feedback:"));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -258,7 +255,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return true;
     }
+
+    private static DataReadRequest queryFitnessData() throws ParseException {
+
+        Calendar cal = Calendar.getInstance();
+        int year = cal.get(Calendar.YEAR);
+        int month = cal.get(Calendar.MONTH)+1;
+        int day =cal.get(Calendar.DAY_OF_MONTH);
+        String startDateString = String.valueOf(year)+"-"+"0"+String.valueOf(month)+"-"+String.valueOf(day)+" "+"0"+"00"+":"+"00"+":"+"00";
+        Date now = new Date();
+        cal.setTime(now);
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date startDate = df.parse(startDateString);
+        long startTime = startDate.getTime();
+        long endTime = cal.getTimeInMillis();
+        java.text.DateFormat dateFormat = DateFormat.getDateInstance();
+        cal.add(Calendar.DAY_OF_MONTH, -1);
+
+        Log.i("hell", "Range Start: " + dateFormat.format(startTime));
+        Log.i("hell", "Range End: " + dateFormat.format(endTime));
+
+        DataReadRequest readRequest = new DataReadRequest.Builder()
+                .read(DataType.AGGREGATE_CALORIES_EXPENDED)
+                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
+                .build();
+
+        return readRequest;
+
+    }
+
     private class ReadingDataTask extends AsyncTask<Void, Void, Void> {
+
         protected Void doInBackground(Void... params) {
             DataReadRequest readRequest = null;
             try {
@@ -270,11 +297,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             DataReadResult dataReadResult =
                     Fitness.HistoryApi.readData(mClient, readRequest).await(1, TimeUnit.MINUTES);
             Log.i("hell",String.valueOf(dataReadResult));
-
             printData(dataReadResult);
-
             text_data = String.valueOf(dataReadResult);
-
             return null;
         }
 
@@ -326,26 +350,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Double per =0.0;
             cal_consumed.setText("Calories consumed: "+ String.valueOf(db.getTodayCalorieCount()));
             if(total.intValue() >= db.getTodayCalorieCount())
-                {
-                    per= 100.0*db.getTodayCalorieCount()/total.intValue();
-                    Log.i("hell", "hgfhgfhf"+String.valueOf(per));
-                }
+            {
+                per= 100.0*db.getTodayCalorieCount()/total.intValue();
+                Log.i("hell", "hgfhgfhf"+String.valueOf(per));
+            }
 
             percentage.setText(String.valueOf(per.intValue())+"% Consumed");
             prefs = getSharedPreferences("application_settings", 0);
             SharedPreferences.Editor editor = prefs.edit();
             editor.putInt("total",total.intValue());
-            editor.putInt("consumed",Integer.valueOf(db.getTodayCalorieCount()));
-            editor.commit();
+            editor.putInt("consumed",db.getTodayCalorieCount());
+            editor.apply();
 
 
 
-//             calProgress.setProgressDrawable(draw);
             new Thread(new Runnable() {
 
                 @Override
                 public void run() {
-                    // TODO Auto-generated method stub
 
                     Log.i("hell", String.valueOf(db.getTodayCalorieCount()));
                     while (pStatus < db.getTodayCalorieCount() &&  pStatus<= total.intValue()) {
@@ -353,7 +375,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         pStatus += 5;
                         if(pStatus==total.intValue()){
                             limit=true;
-
                         }
 
                         handler.post(new Runnable() {
@@ -365,28 +386,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         });
 
                         try {
-
-                            // Sleep for 200 milliseconds.
-                            // Just to display the progress slowly
                             Thread.sleep(1);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
                     }
+
                 }
             }).start();
             Log.i("hell", String.valueOf(limit));
 
-             // Maximum Progress
-            //fitApi.setVisibility(View.GONE);
-//            if(limit)
-//            Toast.makeText(MainActivity.this,"You have reached the fucking deadline",Toast.LENGTH_LONG).show();
         }
     }
 
     private static void printData(DataReadResult dataReadResult) {
         if (dataReadResult.getBuckets().size() > 0) {
-            //Log.i("hell",dataReadResult.getBuckets());
             Log.i("hell", "Number of returned buckets of DataSets is: "
                     + dataReadResult.getBuckets().size());
             for (Bucket bucket : dataReadResult.getBuckets()) {
@@ -425,62 +439,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(Fitness.HISTORY_API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ_WRITE))
-                .addConnectionCallbacks(
-                        new GoogleApiClient.ConnectionCallbacks() {
-                            @Override
-                            public void onConnected(Bundle bundle) {
-                                Log.i("hell", "Connected!!!");
-                                new ReadingDataTask().execute();
+                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
 
-                            }
-
-                            @Override
-                            public void onConnectionSuspended(int i) {
-                                if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
-                                    Log.i("hell", "Connection lost.  Cause: Network Lost.");
-                                } else if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
-                                    Log.i("hell", "Connection lost.  Reason: Service Disconnected");
-                                }
-                            }
-                        }
-                )
-                .enableAutoManage(this, 0, new GoogleApiClient.OnConnectionFailedListener() {
                     @Override
-                    public void onConnectionFailed(ConnectionResult result) {
-                        Log.i("hell", "Google Play services connection failed. Cause: " +
-                                result.toString());
+                    public void onConnected(Bundle bundle) {
+                        Log.i("hell", "Connected!!!");
+                        new ReadingDataTask().execute();
 
                     }
-                })
-                .build();
+
+                    @Override
+                    public void onConnectionSuspended(int i) {
+                        if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_NETWORK_LOST) {
+                            Log.i("hell", "Connection lost.  Cause: Network Lost.");
+                        } else if (i == GoogleApiClient.ConnectionCallbacks.CAUSE_SERVICE_DISCONNECTED) {
+                            Log.i("hell", "Connection lost.  Reason: Service Disconnected");
+                        }
+                    }
+
+                }).enableAutoManage(this, 0, new GoogleApiClient.OnConnectionFailedListener() {
+                    @Override
+                    public void onConnectionFailed(ConnectionResult result) {
+
+                        Log.i("hell", "Google Play services connection failed. Cause: " + result.toString());
+
+                    }
+                }).build();
 
     }
 
-    private static DataReadRequest queryFitnessData() throws ParseException {
-
-        Calendar cal = Calendar.getInstance();
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH)+1;
-        int day =cal.get(Calendar.DAY_OF_MONTH);
-        String startDateString = String.valueOf(year)+"-"+"0"+String.valueOf(month)+"-"+String.valueOf(day)+" "+"0"+"00"+":"+"00"+":"+"00";
-        Date now = new Date();
-        cal.setTime(now);
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date startDate = df.parse(startDateString);
-        long startTime = startDate.getTime();
-        long endTime = cal.getTimeInMillis();
-        java.text.DateFormat dateFormat = DateFormat.getDateInstance();
-        cal.add(Calendar.DAY_OF_MONTH, -1);
-
-        Log.i("hell", "Range Start: " + dateFormat.format(startTime));
-        Log.i("hell", "Range End: " + dateFormat.format(endTime));
-
-        DataReadRequest readRequest = new DataReadRequest.Builder()
-                .read(DataType.AGGREGATE_CALORIES_EXPENDED)
-                .setTimeRange(startTime, endTime, TimeUnit.MILLISECONDS)
-                .build();
-
-        return readRequest;
-
-    }
 }
