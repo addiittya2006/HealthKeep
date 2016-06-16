@@ -1,16 +1,22 @@
 package com.aaa.cybersrishti.fragments;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.aaa.cybersrishti.R;
@@ -35,6 +41,8 @@ public class PlaceholderFragment extends Fragment {
     private ArrayList<FoodItem> mArrFood;
     private ListView lstView;
     private FoodFeedAdapter fa;
+    ScrollView home_content;
+    int exceeded_calorie=0;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar calProgress;
     private SharedPreferences prefs;
@@ -65,21 +73,62 @@ public class PlaceholderFragment extends Fragment {
         View rootView = null;
         if (getArguments().getInt(ARG_SECTION_NUMBER) == 1) {
             rootView = inflater.inflate(R.layout.home_tabbed, container, false);
+            total = prefs.getInt("total", -1);
+            DatabaseHelper db =new DatabaseHelper(getActivity().getApplicationContext());
 //            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-//            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
 
+//            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+            if(total == 0){
+                home_content = (ScrollView) rootView.findViewById(R.id.home_content);
+                RelativeLayout error_container = (RelativeLayout) rootView.findViewById(R.id.error_container);
+//                FloatingActionButton add_food = (FloatingActionButton) rootView.findViewById(R.id.fab);
+//                add_food.setVisibility(View.GONE);
+                home_content.setVisibility(View.GONE);
+                error_container.setVisibility(View.VISIBLE);
+                Button _fit_api=(Button)rootView.findViewById(R.id.fit_app);
+                _fit_api.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        final String appPackageName = "com.google.android.apps.fitness";// getPackageName() from Context or Activity object
+                        try {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+                        } catch (android.content.ActivityNotFoundException anfe) {
+                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appPackageName)));
+                        }
+                    }
+                });
+            }
+            else if(db.getTodayCalorieCount() >= total && db.getTodayCalorieCount()!=0){
+                RelativeLayout warning_container=(RelativeLayout) rootView.findViewById(R.id.cal_warning);
+                warning_container.setVisibility(View.VISIBLE);
+                home_content=(ScrollView)rootView.findViewById(R.id.home_content);
+                TextView cal_exceed=(TextView)rootView.findViewById(R.id.cal_exceed);
+                Log.i("hello", String.valueOf(db.getTodayCalorieCount()));
+                Log.i("hello", String.valueOf(total));
+                exceeded_calorie=db.getTodayCalorieCount()-total;
+                cal_exceed.setText("You have reached the deadline for today...... \n\nExtra calories consumed Today: "+exceeded_calorie+" kcal");
+                home_content.setVisibility(View.GONE);
+
+            }
             calProgress = (ProgressBar) rootView.findViewById(R.id.circularProgressbar);
             Log.i("no of caaaaaccchhhhheee", "onCreate: " + prefs.getInt("total", 0));
+            TextView cal_consumed = (TextView)rootView.findViewById(R.id.cal_consumed);
+            TextView percentage = (TextView)rootView.findViewById(R.id.per_remaining);
+            TextView cal_burned = (TextView) rootView.findViewById(R.id.cal_burned);
+            Log.i("hell",String.valueOf(db.getTodayCalorieCount()));
+            Double per =0.0;
+            cal_consumed.setText("Calories consumed: "+ String.valueOf(db.getTodayCalorieCount()));
+            cal_burned.setText("Calories burned : "+ String.valueOf(total));
+            if(total >= db.getTodayCalorieCount())
+            {
+                per= 100.0*db.getTodayCalorieCount()/total;
+                Log.i("hell", "hgfhgfhf"+String.valueOf(per));
+            }
 
-            total = prefs.getInt("total", 0);
+            percentage.setText(String.valueOf(per.intValue())+"% Consumed");
             if (total != 0) {
                 calProgress.setMax(total);
             }
-//            else {
-//            if (calProgress != null){
-//                calProgress.setMax(1000);
-//            }
-
             new Thread(new Runnable() {
                 @Override
                 public void run() {

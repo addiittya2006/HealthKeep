@@ -156,6 +156,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             TextView no_consumption = (TextView) findViewById(R.id.none_consumed);
             swipeRefreshLayout = (SwipeRefreshLayout)findViewById(R.id.swipe_refresh_layout);
             lstView = (ListView)findViewById(R.id.listView);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt("consumed",db.getTodayCalorieCount());
+            editor.apply();
+
             lstView.setDivider(null);
             mArrFood = new ArrayList<>();
             final DatabaseHelper db = new DatabaseHelper(this);
