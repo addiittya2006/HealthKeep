@@ -15,3 +15,8 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-dontwarn com.android.volley.*
+-dontwarn com.android.volley.toolbox.*
+-dontwarn com.google.android.gms.internal.*
+-dontwarn com.squareup.picasso.*
